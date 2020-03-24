@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
-import { Route } from 'react-router-dom';
-import Home from "../pages/home";
-import Lapor from "../pages/lapor";
-import Pantau from '../pages/pantau'
-import Info from '../pages/info'
-import PATH from "./path";
+import { HashRouter, Route } from 'react-router-dom';
+import Home from '../pages/home/home';
+import Lapor from '../pages/lapor/lapor';
+import Pantau from '../pages/pantau/pantau';
+import Info from '../pages/info/info';
+import PATH from './path';
 class Base extends Component {
 	constructor( props ) {
 		super( props );
@@ -12,12 +12,12 @@ class Base extends Component {
 	}
 	render( ) {
 		return (
-			<div>
+			<HashRouter>
 				<Route path={PATH.root} exact component= { ( ) =><Home/>}/>
 				<Route path={PATH.lapor} component= { ( ) =><Lapor/>}/>
 				<Route path={PATH.pantau} component= { ( ) =><Pantau/>}/>
 				<Route path={PATH.info} component= { ( ) =><Info/>}/>
-			</div>
+			</HashRouter>
 		)
 	}
 }

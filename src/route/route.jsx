@@ -1,17 +1,13 @@
 import React, { Component } from 'react';
-import { HashRouter } from 'react-router-dom';
+import { devmode } from "../config/config";
 import BaseLayout from "./base";
 import { DisableReactDevTools } from "../lib/devtool-killer";
 class Route extends Component {
 	componentWillMount( ) {
-		DisableReactDevTools( false )
+		DisableReactDevTools( !devmode )
 	}
 	render( ) {
-		return (
-			<HashRouter>
-				<BaseLayout/>
-			</HashRouter>
-		)
+		return ( <BaseLayout/> )
 	}
 }
 export default Route;

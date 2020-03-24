@@ -1,4 +1,6 @@
 const containerPaddingSize = '6vw';
+const backgroundWhite = '#fbfbfb'
+export const mainColor = '#009965'
 export const Container = {
 	minHeight: '-webkit-fill-available',
 	display: 'flex',
@@ -8,25 +10,29 @@ export const Container = {
 };
 export const ContainerHome = {
 	...Container,
-	backgroundColor: '#fafafa',
+	backgroundColor: backgroundWhite,
 	justifyContent: 'space-evenly'
 };
 export const ContainerLapor = {
 	...Container,
-	backgroundColor: '#fafafa',
+	backgroundColor: backgroundWhite
 };
 export const ContainerPantau = {
 	...Container,
-	backgroundColor: '#fafafa',
+	backgroundColor: backgroundWhite
 };
 export const ContainerInfo = {
 	...Container,
-	backgroundColor: '#fafafa',
+	backgroundColor: backgroundWhite
 };
 export const StyleLogo = {
 	width: '40vw',
-	marginTop:'10vw',
-	marginBottom:'calc( 10vw + '+containerPaddingSize+' )'
+	marginTop: '10vw',
+	marginBottom: 'calc( 10vw + ' + containerPaddingSize + ' )'
+};
+export const StyleFooter = {
+	position: 'absolute',
+	bottom: '1vh'
 };
 export const GGrid = {
 	width: '100%',

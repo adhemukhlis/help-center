@@ -1,8 +1,14 @@
 import React, { Component } from 'react';
 import { Form, Card, PageHeader, Input, Divider } from 'antd';
-import { ContainerInfo, StyleLogo } from "./style";
-import Logo from "../logo.svg";
+import { ContainerInfo, StyleLogo } from "../style";
+import Logo from "../../logo.svg";
 class Info extends Component {
+	state = {
+		pencarian: ''
+	};
+	onChange = ( name, value ) => {
+		this.setState({ [ name ]: value })
+	}
 	render( ) {
 		return (
 			<div>
@@ -17,7 +23,7 @@ class Info extends Component {
 						<Form layout="vertical">
 							<Card title="Info Rumah Sakit dan Puskesmas">
 								<Form.Item label="Cari">
-									<Input.Search placeholder="cari" onSearch={value => console.log( value )} enterButton/>
+									<Input.Search placeholder="cari" onSearch={( value ) => this.onChange( "pencarian", value )} enterButton/>
 								</Form.Item>
 							</Card>
 							<Divider dashed/>
