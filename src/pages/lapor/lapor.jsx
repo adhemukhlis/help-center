@@ -13,27 +13,38 @@ import {
 	InputNumber
 } from 'antd';
 import { ContainerLapor, StyleLogo } from "../style";
-import Logo from "../../logo.svg";
-import { data_kabupaten, data_kecamatan, data_kelurahan } from "../../data-kota/data-kota";
+import Logo from "../../chart-network.svg";
+import { GetProvinsi, GetKabKot, GetKecamatan, GetKelurahan } from "../../lib/regional";
 class Lapor extends Component {
 	state = {
 		unitUmur: 'thn',
-		kabupaten: data_kabupaten,
-		kecamatan: data_kecamatan[data_kabupaten[0]],
-		kelurahan: data_kelurahan[data_kecamatan[data_kabupaten[0]][0 ]],
+		provinsi: [],
+		provinsi_loaded: false,
+		kabupaten: [],
+		kabupaten_loaded: false,
+		kecamatan: [],
+		kecamatan_loaded: false,
+		kelurahan: [],
+		kelurahan_loaded: false,
 		form_nama_pelapor: '',
 		form_nik: '',
 		form_alamat: '',
 		form_rt: '',
 		form_rw: '',
-		form_kelurahan: data_kelurahan[data_kecamatan[data_kabupaten[0]][0 ]][0],
-		form_kecamatan: data_kecamatan[data_kabupaten[0]][0],
-		form_kabupaten: data_kabupaten[0],
+		form_provinsi: null,
+		form_kelurahan: null,
+		form_kecamatan: null,
+		form_kabupaten: null,
 		form_telp: '',
 		form_nama_warga_sakit: '',
 		form_umur: 1,
 		form_keluhan: ''
 	};
+	componentDidMount( ) {
+		GetProvinsi(( data ) => {
+			this.setState({ provinsi: data, provinsi_loaded: true })
+		})
+	}
 	onCheckChange = ( e ) => {
 		this.setState({
 			unitUmur: e.target.checked
@@ -53,28 +64,32 @@ class Lapor extends Component {
 			this.setState({ [ name ]: keluhan });
 			console.log(keluhan.split( ',' ))
 		} else {
+			if ( name === "form_provinsi" ) {
+				this.setState({ kabupaten_loaded: false, form_kabupaten: null });
+				GetKabKot(value, ( data ) => this.setState({ kabupaten: data, kabupaten_loaded: true }))
+			} else if ( name === "form_kabupaten" ) {
+				this.setState({ kecamatan_loaded: false, form_kecamatan: null });
+				GetKecamatan(value, ( data ) => this.setState({ kecamatan: data, kecamatan_loaded: true }))
+			} else if ( name === "form_kecamatan" ) {
+				this.setState({ kelurahan_loaded: false, form_kelurahan: null });
+				GetKelurahan(value, ( data ) => this.setState({ kelurahan: data, kelurahan_loaded: true }))
+			}
 			this.setState({ [ name ]: value })
 		}
 	}
-	handleKabupatenChange = value => {
-		this.setState({
-			kecamatan: data_kecamatan[value],
-			kelurahan: data_kelurahan[data_kecamatan[value][0 ]],
-			form_kecamatan: data_kecamatan[value][0],
-			form_kelurahan: data_kelurahan[data_kecamatan[value][0 ]][0],
-			form_kabupaten: value
-		})
-	};
-	handleKecamatanChange = value => {
-		this.setState({ kelurahan: data_kelurahan[value], form_kelurahan: data_kelurahan[value][0], form_kecamatan: value })
-	};
 	render( ) {
 		const {
 			unitUmur,
+			provinsi,
+			provinsi_loaded,
 			kabupaten,
+			kabupaten_loaded,
 			kecamatan,
+			kecamatan_loaded,
 			kelurahan,
+			kelurahan_loaded,
 			form_umur,
+			form_provinsi,
 			form_kabupaten,
 			form_kecamatan,
 			form_kelurahan
@@ -136,23 +151,30 @@ class Lapor extends Component {
 									</Col>
 								</Row>
 								<Form.Item >
-									<Select size="large" value={form_kelurahan} placeholder="Kelurahan" onChange={( value ) => this.onSelectChange( "form_kelurahan", value )}>
-										<Select.OptGroup label="Kelurahan">{kelurahan.map(( data ) => {
-												return <Select.Option key={data} value={data}>{data}</Select.Option>
+									<Select size="large" {...(form_provinsi!==null ? {value: form_provinsi} : {})} placeholder="Provinsi" onChange={( value ) => this.onSelectChange( "form_provinsi", value )} loading={!provinsi_loaded}>
+										<Select.OptGroup label="Provinsi">{provinsi.map(( data ) => {
+												return <Select.Option key={data.id + data.nama} value={data.id}>{data.name}</Select.Option>
 											})}</Select.OptGroup>
 									</Select>
 								</Form.Item>
 								<Form.Item >
-									<Select size="large" value={form_kecamatan} placeholder="Kecamatan" onChange={this.handleKecamatanChange}>
-										<Select.OptGroup label="Kecamatan">{kecamatan.map(( data ) => {
-												return <Select.Option key={data} value={data}>{data}</Select.Option>
-											})}</Select.OptGroup>
-									</Select>
-								</Form.Item>
-								<Form.Item >
-									<Select size="large" defaultValue={form_kabupaten} placeholder="Kabupaten" onChange={this.handleKabupatenChange}>
+									<Select size="large" {...(form_kabupaten!==null ? {value: form_kabupaten} : {})} placeholder="Kabupaten" onChange={( value ) => this.onSelectChange( "form_kabupaten", value )} loading={!kabupaten_loaded}>
 										<Select.OptGroup label="Kabupaten">{kabupaten.map(( data ) => {
-												return <Select.Option key={data} value={data}>{data}</Select.Option>
+												return <Select.Option key={data.id + data.name} value={data.id}>{data.name}</Select.Option>
+											})}</Select.OptGroup>
+									</Select>
+								</Form.Item>
+								<Form.Item >
+									<Select size="large" {...(form_kecamatan!==null ? {value: form_kecamatan} : {})} placeholder="Kecamatan" onChange={( value ) => this.onSelectChange( "form_kecamatan", value )} loading={!kecamatan_loaded}>
+										<Select.OptGroup label="Kecamatan">{kecamatan.map(( data ) => {
+												return <Select.Option key={data.id + data.name} value={data.id}>{data.name}</Select.Option>
+											})}</Select.OptGroup>
+									</Select>
+								</Form.Item>
+								<Form.Item >
+									<Select size="large" {...(form_kelurahan!==null ? {value: form_kelurahan} : {})} placeholder="Kelurahan" onChange={( value ) => this.onSelectChange( "form_kelurahan", value )} loading={!kelurahan_loaded}>
+										<Select.OptGroup label="Kelurahan">{kelurahan.map(( data ) => {
+												return <Select.Option key={data.id + data.name} value={data.id}>{data.name}</Select.Option>
 											})}</Select.OptGroup>
 									</Select>
 								</Form.Item>

@@ -11,7 +11,7 @@ import {
 	Select
 } from 'antd';
 import { ContainerPantau, StyleLogo } from "../style";
-import Logo from "../../logo.svg";
+import Logo from "../../chart-network.svg";
 const data = {
 	labels: [
 		'Positif : 124', 'Sembuh : 124', 'Meninggal : 124', 'Pantauan :124'

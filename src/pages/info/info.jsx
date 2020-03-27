@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Form, Card, PageHeader, Input, Divider } from 'antd';
 import { ContainerInfo, StyleLogo } from "../style";
-import Logo from "../../logo.svg";
+import Logo from "../../chart-network.svg";
 class Info extends Component {
 	state = {
 		pencarian: ''

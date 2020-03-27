@@ -1,4 +1,4 @@
-const containerPaddingSize = '6vw';
+const containerPaddingSize = '2vw';
 const backgroundWhite = '#fbfbfb'
 export const mainColor = '#009965'
 export const Container = {
@@ -11,10 +11,11 @@ export const Container = {
 export const ContainerHome = {
 	...Container,
 	backgroundColor: backgroundWhite,
-	justifyContent: 'space-evenly'
+	justifyContent: 'start'
 };
 export const ContainerLapor = {
 	...Container,
+	justifyContent: 'start',
 	backgroundColor: backgroundWhite
 };
 export const ContainerPantau = {
@@ -26,26 +27,38 @@ export const ContainerInfo = {
 	backgroundColor: backgroundWhite
 };
 export const StyleLogo = {
-	width: '40vw',
-	marginTop: '10vw',
-	marginBottom: 'calc( 10vw + ' + containerPaddingSize + ' )'
+	width: '20vh',
+	marginTop: 'calc( 4vw + 10vh )',
+	marginBottom: 'calc( 4vw + ' + containerPaddingSize + ' + 10vh )'
+};
+export const StyleTitle = {
+	marginTop: '4vh',
+	marginBottom: '4vh',
+}
+export const PowerLogo = {
+	width: '16vh',
+	marginBottom: '4vh'
 };
 export const StyleFooter = {
+	textAlign:'center',
 	position: 'absolute',
-	bottom: '1vh'
+	bottom: '1vh',
+	fontSize:'calc( 1vh + .5vw )',
+	padding:'2vh'
 };
 export const GGrid = {
+	marginTop: '4vh',
 	width: '100%',
 	display: 'flex',
 	flexFlow: 'wrap',
 	flexDirection: 'row',
-	justifyContent: 'space-between'
+	justifyContent: 'space-evenly'
 };
 export const GGridItem = {
 	backgroundColor: '#fff',
-	padding: '4vw',
-	width: '24vw',
-	height: '24vw',
+	padding: '1.5vh',
+	width: 'calc( 8vh + 8vw )',
+	height: 'calc( 8vh + 8vw )',
 	display: 'flex',
 	flexDirection: 'column',
 	alignItems: 'center',

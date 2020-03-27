@@ -30,9 +30,9 @@ const menuButton = [
 ];
 export default class HomeButton extends Component {
 	render( ) {
-		return (menuButton.map(( data ) => {
+		return (menuButton.map(( data, i ) => {
 			return (
-				<DelayLink delay={400} to={data.to} clickAction={data.action} replace={false}>
+				<DelayLink key={i} delay={400} to={data.to} clickAction={data.action} replace={false}>
 					<Button3d style={GGridItem}>{data.icon}{data.label}</Button3d>
 				</DelayLink>
 			)
