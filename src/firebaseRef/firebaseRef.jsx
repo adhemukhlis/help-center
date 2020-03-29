@@ -1,10 +1,7 @@
 import firebase from '@firebase/app';
 import '@firebase/database';
 const regionalConfig = {
-	apiKey: "AIzaSyDx9xXilqhDblbFFoWL96pvd_dOe3EZ4M4",
-	authDomain: "indonesia-region.firebaseapp.com",
-	databaseURL: "https://indonesia-region.firebaseio.com",
-	storageBucket: "indonesia-region.appspot.com"
+	databaseURL: "https://api-wilayah-indonesia-firebase.firebaseio.com"
 };
 const config = {
 	apiKey: "AIzaSyARr7LinVxpQG7lXdHc0FKJIL-EKxAB7hI",
@@ -21,7 +18,7 @@ var regionalFirebase = firebase.initializeApp( regionalConfig, "other" );
 export const rootRegionalRef = regionalFirebase
 	.database( )
 	.ref( )
-	.child( 'regional' );
+	.child( 'wilayah' );
 export const regionArr = ( region, order, equal ) => rootRegionalRef
 	.child( region )
 	.orderByChild( order )

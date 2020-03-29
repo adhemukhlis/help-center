@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import 'antd/es/form/style/css';
+import 'antd/es/message/style/css';
+import 'antd/es/collapse/style/css';
 import 'antd/es/checkbox/style/css';
 import 'antd/es/page-header/style/css';
 import 'antd/es/divider/style/css';
