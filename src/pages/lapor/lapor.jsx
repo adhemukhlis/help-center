@@ -22,6 +22,7 @@ import {rootRef} from '../../firebaseRef/firebaseRef'
 class Lapor extends Component {
     state = {
         unitUmur: 'thn',
+        page_active:0,
         nik_checking: false,
         data_loaded: false,
         provinsi: [],
@@ -87,58 +88,69 @@ class Lapor extends Component {
     }
     sendData = () => {
         const {data_loaded} = this.state
-        if(data_loaded){
+        if (data_loaded) {
             console.log('nothig to save');
-            
-        }else {
+
+        } else {
             var r = window.confirm("izinkan aplikasi mendapatkan lokasi akurat, bla!");
-        if (r === true) {
-            
-            get_gps_location((pos) => {
-                this.setState({
-                    form_lokasi_pelapor: {
-                        lat: pos.coords.latitude,
-                        lng: pos.coords.longitude
-                    }
-                })
-                const {
-                    form_nik,
-                    form_nama_pelapor,
-                    form_alamat,
-                    form_rt,
-                    form_rw,
-                    form_kelurahan,
-                    form_kecamatan,
-                    form_kabupaten,
-                    form_provinsi,
-                    form_telp
-                } = this.state
-                rootRef
-                    .child('pelapor')
-                    .child(form_nik)
-                    .set({
-                        nik: form_nik,
-                        nama: form_nama_pelapor,
-                        alamat: form_alamat,
-                        rt: form_rt,
-                        rw: form_rt,
-                        kelurahan: form_kelurahan,
-                        kecamatan: form_kecamatan,
-                        kabupaten: form_kabupaten,
-                        provinsi: form_provinsi,
-                        no_telp: form_telp,
-                        kordinat_lokasi: {
+            if (r === true) {
+
+                get_gps_location((pos) => {
+                    this.setState({
+                        form_lokasi_pelapor: {
                             lat: pos.coords.latitude,
                             lng: pos.coords.longitude
                         }
                     })
-                alert("lat : " + pos.coords.latitude + " lng : " + pos.coords.longitude)
-            })
-        } else {
-            alert("aborted")
+                    const {
+                        form_nik,
+                        form_nama_pelapor,
+                        form_alamat,
+                        form_rt,
+                        form_rw,
+                        form_kelurahan,
+                        form_kecamatan,
+                        form_kabupaten,
+                        form_provinsi,
+                        form_telp
+                    } = this.state
+                    rootRef
+                        .child('pelapor')
+                        .child(form_nik)
+                        .set({
+                            nik: form_nik,
+                            nama: form_nama_pelapor,
+                            alamat: form_alamat,
+                            rt: form_rt,
+                            rw: form_rt,
+                            kelurahan: form_kelurahan,
+                            kecamatan: form_kecamatan,
+                            kabupaten: form_kabupaten,
+                            provinsi: form_provinsi,
+                            no_telp: form_telp,
+                            kordinat_lokasi: {
+                                lat: pos.coords.latitude,
+                                lng: pos.coords.longitude
+                            }
+                        })
+                    alert("lat : " + pos.coords.latitude + " lng : " + pos.coords.longitude)
+                })
+            } else {
+                alert("aborted")
+            }
         }
-        }
-        
+        this.nextPage()
+
+    }
+    nextPage = ()=>{
+        this.setState((state)=>({
+            page_active:state.page_active+1
+        }))
+    }
+    prevPage = ()=>{
+        this.setState((state)=>({
+            page_active:state.page_active-1
+        }))
     }
     cekNIK = (name, value) => {
         this.setState({nik_checking: true})
@@ -199,6 +211,7 @@ class Lapor extends Component {
         const {
             unitUmur,
             nik_checking,
+            page_active,
             provinsi,
             provinsi_loaded,
             kabupaten,
@@ -235,6 +248,174 @@ class Lapor extends Component {
             'sesak nafas',
             'diare'
         ];
+        const PageSession = [(
+                <div>
+                    <Card title="Data pelapor">
+                        <Form.Item label="NIK">
+                            <Input.Search
+                                type="number"
+                                onKeyDown={(e) => e.key === 'e' && e.preventDefault()}
+                                size="large"
+                                placeholder="NIK"
+                                onSearch={(value) => this.cekNIK("form_nik", value)}
+                                enterButton="Cek NIK"
+                                loading={nik_checking}/>
+                        </Form.Item>
+
+                    </Card>
+                    <Divider dashed/>
+                    <Collapse
+                        activeKey={data_loaded
+                        ? ['1']
+                        : []}>
+                        <Collapse.Panel header="Data rinci pelapor" key="1">
+                            <Form.Item label="Nama pelapor">
+                                <Input
+                                    size="large"
+                                    name="form_nama_pelapor"
+                                    onChange={this.onChange}
+                                    {...(form_nama_pelapor!=='' ? {value: form_nama_pelapor} : {})}/>
+                            </Form.Item>
+
+                            <Form.Item label="Alamat">
+                                <Input.TextArea
+                                    size="large"
+                                    name="form_alamat"
+                                    onChange={this.onChange}
+                                    {...(form_alamat!=='' ? {value: form_alamat} : {})}/>
+                            </Form.Item>
+                            <Row gutter={16}>
+                                <Col span={12}>
+                                    <Form.Item >
+                                        <Select
+                                            size="large"
+                                            placeholder="RT"
+                                            {...(form_rt!=='' ? {value: form_rt} : {})}
+                                            onChange={(value) => this.onSelectChange("form_rt", value)}>
+                                            <Select.OptGroup label="RT">{rt.map((data) => {
+                                                    return <Select.Option key={data} value={data}>{data}</Select.Option>
+                                                })}</Select.OptGroup>
+                                        </Select>
+                                    </Form.Item>
+                                </Col>
+                                <Col span={12}>
+                                    <Form.Item >
+                                        <Select
+                                            size="large"
+                                            placeholder="RW"
+                                            {...(form_rw!=='' ? {value: form_rw} : {})}
+                                            onChange={(value) => this.onSelectChange("form_rw", value)}>
+                                            <Select.OptGroup label="RW">{rw.map((data) => {
+                                                    return <Select.Option key={data} value={data}>{data}</Select.Option>
+                                                })}</Select.OptGroup>
+                                        </Select>
+                                    </Form.Item>
+                                </Col>
+                            </Row>
+                            <Form.Item >
+                                <Select
+                                    size="large"
+                                    {...(form_provinsi!==null ? {value: form_provinsi} : {})}
+                                    placeholder="Provinsi"
+                                    onChange={(value) => this.onSelectChange("form_provinsi", value)}
+                                    loading={!provinsi_loaded}>
+                                    <Select.OptGroup label="Provinsi">{provinsi.map((data) => {
+                                            return <Select.Option key={data.id + data.nama} value={data.id}>{data.name}</Select.Option>
+                                        })}</Select.OptGroup>
+                                </Select>
+                            </Form.Item>
+                            <Form.Item >
+                                <Select
+                                    size="large"
+                                    {...(form_kabupaten!==null ? {value: form_kabupaten} : {})}
+                                    placeholder="Kabupaten"
+                                    onChange={(value) => this.onSelectChange("form_kabupaten", value)}
+                                    loading={!kabupaten_loaded}>
+                                    <Select.OptGroup label="Kabupaten">{kabupaten.map((data) => {
+                                            return <Select.Option key={data.id + data.name} value={data.id}>{data.name}</Select.Option>
+                                        })}</Select.OptGroup>
+                                </Select>
+                            </Form.Item>
+                            <Form.Item >
+                                <Select
+                                    size="large"
+                                    {...(form_kecamatan!==null ? {value: form_kecamatan} : {})}
+                                    placeholder="Kecamatan"
+                                    onChange={(value) => this.onSelectChange("form_kecamatan", value)}
+                                    loading={!kecamatan_loaded}>
+                                    <Select.OptGroup label="Kecamatan">{kecamatan.map((data) => {
+                                            return <Select.Option key={data.id + data.name} value={data.id}>{data.name}</Select.Option>
+                                        })}</Select.OptGroup>
+                                </Select>
+                            </Form.Item>
+                            <Form.Item >
+                                <Select
+                                    size="large"
+                                    {...(form_kelurahan!==null ? {value: form_kelurahan} : {})}
+                                    placeholder="Kelurahan"
+                                    onChange={(value) => this.onSelectChange("form_kelurahan", value)}
+                                    loading={!kelurahan_loaded}>
+                                    <Select.OptGroup label="Kelurahan">{kelurahan.map((data) => {
+                                            return <Select.Option key={data.id + data.name} value={data.id}>{data.name}</Select.Option>
+                                        })}</Select.OptGroup>
+                                </Select>
+                            </Form.Item>
+                            <Form.Item label="No. Telpon">
+                                <Input
+                                    size="large"
+                                    name="form_telp"
+                                    onChange={this.onChange}
+                                    {...(form_telp!=='' ? {value: form_telp} : {})}/>
+                            </Form.Item>
+                        </Collapse.Panel>
+                    </Collapse>
+                </div>
+            ), (
+                <div>
+                    <Card title="Data warga sakit">
+                        <Form.Item label="Nama warga sakit">
+                            <Input size="large" name="form_nama_warga_sakit" onChange={this.onChange}/>
+                        </Form.Item>
+                        <Form.Item
+                            label="Umur"
+                            extra="beri centang jika warga sakit berumur dibawah satu tahun.">
+                            <Row gutter={16}>
+                                <Col span={8}>
+                                    <InputNumber
+                                        size="large"
+                                        value={form_umur}
+                                        min={1}
+                                        defaultValue={1}
+                                        max={unitUmur === "bln"
+                                        ? 11
+                                        : 120}
+                                        onChange={(value) => this.onSelectChange("form_umur", value)}
+                                        onKeyDown={(e) => e.key === 'e' && e.preventDefault()}/>
+                                    <b>*{unitUmur}</b>
+                                </Col>
+                                <Col span={16}>
+                                    <Checkbox onChange={this.onCheckChange}>umur dibawah 1 thn</Checkbox>
+                                </Col>
+                            </Row>
+                        </Form.Item>
+                        <Form.Item
+                            label="Keluhan"
+                            extra="input keluhan sesuai pilihan, tambah keluhan lain dan pisah dengan tanda koma `,` .">
+                            <Select
+                                size="large"
+                                mode="tags"
+                                style={{
+                                width: '100%'
+                            }}
+                                placeholder="keluhan"
+                                onChange={(value) => this.onSelectChange("form_keluhan", value)}
+                                tokenSeparators={[',']}>{gejala.map((data) => {
+                                    return <Select.Option key={data}>{data}</Select.Option>
+                                })}</Select>
+                        </Form.Item>
+                    </Card>
+                </div>
+            )]
         return (
             <div>
                 <PageHeader
@@ -250,176 +431,18 @@ class Lapor extends Component {
                         flexDirection: 'column'
                     }}>
                         <Form layout="vertical">
-                            <Card title="Data pelapor">
-                                <Form.Item label="NIK">
-                                    <Input.Search
-                                        type="number"
-                                        onKeyDown={(e) => e.key === 'e' && e.preventDefault()}
-                                        size="large"
-                                        placeholder="NIK"
-                                        onSearch={(value) => this.cekNIK("form_nik", value)}
-                                        enterButton="Cek NIK"
-                                        loading={nik_checking}/>
-                                </Form.Item>
 
-                            </Card>
-                            <Divider dashed/>
-                            <Collapse
-                                activeKey={data_loaded
-                                ? ['1']
-                                : []}>
-                                <Collapse.Panel header="Data rinci pelapor" key="1">
-                                    <Form.Item label="Nama pelapor">
-                                        <Input
-                                            size="large"
-                                            name="form_nama_pelapor"
-                                            onChange={this.onChange}
-                                            {...(form_nama_pelapor!=='' ? {value: form_nama_pelapor} : {})}/>
-                                    </Form.Item>
-
-                                    <Form.Item label="Alamat">
-                                        <Input.TextArea
-                                            size="large"
-                                            name="form_alamat"
-                                            onChange={this.onChange}
-                                            {...(form_alamat!=='' ? {value: form_alamat} : {})}/>
-                                    </Form.Item>
-                                    <Row gutter={16}>
-                                        <Col span={12}>
-                                            <Form.Item >
-                                                <Select
-                                                    size="large"
-                                                    placeholder="RT"
-                                                    {...(form_rt!=='' ? {value: form_rt} : {})}
-                                                    onChange={(value) => this.onSelectChange("form_rt", value)}>
-                                                    <Select.OptGroup label="RT">{rt.map((data) => {
-                                                            return <Select.Option key={data} value={data}>{data}</Select.Option>
-                                                        })}</Select.OptGroup>
-                                                </Select>
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={12}>
-                                            <Form.Item >
-                                                <Select
-                                                    size="large"
-                                                    placeholder="RW"
-                                                    {...(form_rw!=='' ? {value: form_rw} : {})}
-                                                    onChange={(value) => this.onSelectChange("form_rw", value)}>
-                                                    <Select.OptGroup label="RW">{rw.map((data) => {
-                                                            return <Select.Option key={data} value={data}>{data}</Select.Option>
-                                                        })}</Select.OptGroup>
-                                                </Select>
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
-                                    <Form.Item >
-                                        <Select
-                                            size="large"
-                                            {...(form_provinsi!==null ? {value: form_provinsi} : {})}
-                                            placeholder="Provinsi"
-                                            onChange={(value) => this.onSelectChange("form_provinsi", value)}
-                                            loading={!provinsi_loaded}>
-                                            <Select.OptGroup label="Provinsi">{provinsi.map((data) => {
-                                                    return <Select.Option key={data.id + data.nama} value={data.id}>{data.name}</Select.Option>
-                                                })}</Select.OptGroup>
-                                        </Select>
-                                    </Form.Item>
-                                    <Form.Item >
-                                        <Select
-                                            size="large"
-                                            {...(form_kabupaten!==null ? {value: form_kabupaten} : {})}
-                                            placeholder="Kabupaten"
-                                            onChange={(value) => this.onSelectChange("form_kabupaten", value)}
-                                            loading={!kabupaten_loaded}>
-                                            <Select.OptGroup label="Kabupaten">{kabupaten.map((data) => {
-                                                    return <Select.Option key={data.id + data.name} value={data.id}>{data.name}</Select.Option>
-                                                })}</Select.OptGroup>
-                                        </Select>
-                                    </Form.Item>
-                                    <Form.Item >
-                                        <Select
-                                            size="large"
-                                            {...(form_kecamatan!==null ? {value: form_kecamatan} : {})}
-                                            placeholder="Kecamatan"
-                                            onChange={(value) => this.onSelectChange("form_kecamatan", value)}
-                                            loading={!kecamatan_loaded}>
-                                            <Select.OptGroup label="Kecamatan">{kecamatan.map((data) => {
-                                                    return <Select.Option key={data.id + data.name} value={data.id}>{data.name}</Select.Option>
-                                                })}</Select.OptGroup>
-                                        </Select>
-                                    </Form.Item>
-                                    <Form.Item >
-                                        <Select
-                                            size="large"
-                                            {...(form_kelurahan!==null ? {value: form_kelurahan} : {})}
-                                            placeholder="Kelurahan"
-                                            onChange={(value) => this.onSelectChange("form_kelurahan", value)}
-                                            loading={!kelurahan_loaded}>
-                                            <Select.OptGroup label="Kelurahan">{kelurahan.map((data) => {
-                                                    return <Select.Option key={data.id + data.name} value={data.id}>{data.name}</Select.Option>
-                                                })}</Select.OptGroup>
-                                        </Select>
-                                    </Form.Item>
-                                    <Form.Item label="No. Telpon">
-                                        <Input
-                                            size="large"
-                                            name="form_telp"
-                                            onChange={this.onChange}
-                                            {...(form_telp!=='' ? {value: form_telp} : {})}/>
-                                    </Form.Item>
-                                </Collapse.Panel>
-                            </Collapse>
-                            {/* <Divider dashed/>
-                            <Card title="Data warga sakit">
-                                <Form.Item label="Nama warga sakit">
-                                    <Input size="large" name="form_nama_warga_sakit" onChange={this.onChange}/>
-                                </Form.Item>
-                                <Form.Item
-                                    label="Umur"
-                                    extra="beri centang jika warga sakit berumur dibawah satu tahun.">
-                                    <Row gutter={16}>
-                                        <Col span={8}>
-                                            <InputNumber
-                                                size="large"
-                                                value={form_umur}
-                                                min={1}
-                                                defaultValue={1}
-                                                max={unitUmur === "bln"
-                                                ? 11
-                                                : 120}
-                                                onChange={(value) => this.onSelectChange("form_umur", value)}
-                                                onKeyDown={(e) => e.key === 'e' && e.preventDefault()}/>
-                                            <b>*{unitUmur}</b>
-                                        </Col>
-                                        <Col span={16}>
-                                            <Checkbox onChange={this.onCheckChange}>umur dibawah 1 thn</Checkbox>
-                                        </Col>
-                                    </Row>
-                                </Form.Item>
-                                <Form.Item
-                                    label="Keluhan"
-                                    extra="input keluhan sesuai pilihan, tambah keluhan lain dan pisah dengan tanda koma `,` .">
-                                    <Select
-                                        size="large"
-                                        mode="tags"
-                                        style={{
-                                        width: '100%'
-                                    }}
-                                        placeholder="keluhan"
-                                        onChange={(value) => this.onSelectChange("form_keluhan", value)}
-                                        tokenSeparators={[',']}>{gejala.map((data) => {
-                                            return <Select.Option key={data}>{data}</Select.Option>
-                                        })}</Select>
-                                </Form.Item>
-                            </Card> */}
+                            {
+                                PageSession[page_active]
+                            }
                             <Divider dashed/>
                             <Form.Item >
                                 <Row gutter={16}>
                                     <Col span={6}>
-                                        <Button block type="dashed" size="large">Batal</Button>
+                        <Button block  type="dashed" size="large" onClick={() => page_active>0?this.prevPage():window.history.back()}>{(page_active > 0?"Kembali":"Batal")}</Button>
                                     </Col>
                                     <Col span={18}>
-                                        <Button block type="primary" size="large" onClick={this.sendData}>Kirim</Button>
+                                        <Button block type="primary" size="large" onClick={this.sendData}>{(page_active > 0?"Kirim":"Selanjutnya")}</Button>
                                     </Col>
                                 </Row>
                             </Form.Item>
