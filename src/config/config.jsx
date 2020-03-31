@@ -1,2 +1,2 @@
 export const ver = '29032020-2';
-export const devmode = false;
+export const devmode = true;

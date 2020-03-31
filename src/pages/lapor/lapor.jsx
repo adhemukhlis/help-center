@@ -14,6 +14,7 @@ import {
     message,
     InputNumber
 } from 'antd';
+import {Redirect} from 'react-router-dom'
 import {ContainerLapor, StyleLogo} from "../style";
 import Logo from "../../chart-network.svg";
 import {GetProvinsi, GetKabKot, GetKecamatan, GetKelurahan} from "../../lib/regional";
@@ -21,10 +22,12 @@ import {get_gps_location} from "../../lib/gps"
 import {rootRef} from '../../firebaseRef/firebaseRef'
 class Lapor extends Component {
     state = {
+        redirect:false,
         unitUmur: 'thn',
-        page_active:0,
+        page_active: 0,
         nik_checking: false,
         data_loaded: false,
+        nik_registered:false,
         provinsi: [],
         provinsi_loaded: false,
         kabupaten: [],
@@ -87,128 +90,186 @@ class Lapor extends Component {
         }
     }
     sendData = () => {
-        const {data_loaded} = this.state
-        if (data_loaded) {
-            console.log('nothig to save');
+        const {nik_registered, page_active} = this.state
+        if (page_active > 0) {  
+            const {
+                form_nik,
+                form_rt,
+                form_rw,
+                form_kelurahan,
+                form_kecamatan,
+                form_kabupaten,
+                form_provinsi,
+                form_keluhan,
+                form_umur,
+                form_nama_warga_sakit
+            } = this.state
+            rootRef
+                .child('terlapor')
+                .push({
+                    nik_pelapor: form_nik,
+                    nama: form_nama_warga_sakit,
+                    rt: form_rt,
+                    rw: form_rw,
+                    kelurahan: form_kelurahan,
+                    kecamatan: form_kecamatan,
+                    kabupaten: form_kabupaten,
+                    provinsi: form_provinsi,
+                    keluhan: form_keluhan,
+                    umur: form_umur
+                }, (error)=>{
+                    if(error){
 
+                    } else {
+                        message.success('Laporan terkirim.')
+                        this.setState({redirect:true})
+                    }
+                })
+                
         } else {
-            var r = window.confirm("izinkan aplikasi mendapatkan lokasi akurat, bla!");
-            if (r === true) {
+            if (nik_registered) {
+                console.log('nothig to save');
 
-                get_gps_location((pos) => {
-                    this.setState({
-                        form_lokasi_pelapor: {
-                            lat: pos.coords.latitude,
-                            lng: pos.coords.longitude
-                        }
-                    })
-                    const {
-                        form_nik,
-                        form_nama_pelapor,
-                        form_alamat,
-                        form_rt,
-                        form_rw,
-                        form_kelurahan,
-                        form_kecamatan,
-                        form_kabupaten,
-                        form_provinsi,
-                        form_telp
-                    } = this.state
-                    rootRef
-                        .child('pelapor')
-                        .child(form_nik)
-                        .set({
-                            nik: form_nik,
-                            nama: form_nama_pelapor,
-                            alamat: form_alamat,
-                            rt: form_rt,
-                            rw: form_rt,
-                            kelurahan: form_kelurahan,
-                            kecamatan: form_kecamatan,
-                            kabupaten: form_kabupaten,
-                            provinsi: form_provinsi,
-                            no_telp: form_telp,
-                            kordinat_lokasi: {
+            } else {
+                var r = window.confirm("izinkan aplikasi mendapatkan lokasi akurat, bla!");
+                if (r === true) {
+
+                    get_gps_location((pos) => {
+                        this.setState({
+                            form_lokasi_pelapor: {
                                 lat: pos.coords.latitude,
                                 lng: pos.coords.longitude
                             }
                         })
-                    alert("lat : " + pos.coords.latitude + " lng : " + pos.coords.longitude)
-                })
-            } else {
-                alert("aborted")
+                        const {
+                            form_nik,
+                            form_nama_pelapor,
+                            form_alamat,
+                            form_rt,
+                            form_rw,
+                            form_kelurahan,
+                            form_kecamatan,
+                            form_kabupaten,
+                            form_provinsi,
+                            form_telp
+                        } = this.state
+                        rootRef
+                            .child('pelapor')
+                            .child(form_nik)
+                            .set({
+                                nik: form_nik,
+                                nama: form_nama_pelapor,
+                                alamat: form_alamat,
+                                rt: form_rt,
+                                rw: form_rw,
+                                kelurahan: form_kelurahan,
+                                kecamatan: form_kecamatan,
+                                kabupaten: form_kabupaten,
+                                provinsi: form_provinsi,
+                                no_telp: form_telp,
+                                kordinat_lokasi: {
+                                    lat: pos.coords.latitude,
+                                    lng: pos.coords.longitude
+                                }
+                            })
+                        alert("lat : " + pos.coords.latitude + " lng : " + pos.coords.longitude)
+                    })
+                } else {
+                    alert("aborted")
+                }
             }
+            this.nextPage()
         }
-        this.nextPage()
 
     }
-    nextPage = ()=>{
-        this.setState((state)=>({
-            page_active:state.page_active+1
+    nextPage = () => {
+        this.setState((state) => ({
+            page_active: state.page_active + 1
         }))
     }
-    prevPage = ()=>{
-        this.setState((state)=>({
-            page_active:state.page_active-1
+    prevPage = () => {
+        this.setState((state) => ({
+            page_active: state.page_active - 1
         }))
     }
     cekNIK = (name, value) => {
-        this.setState({nik_checking: true})
-        rootRef
-            .child('pelapor')
-            .child(value)
-            .once('value', (snap) => {
-                console.log(snap.exists());
-                if (snap.exists()) {
-                    message.success('NIK sudah terdaftar, tekan next untuk melanjutkan.')
-                    console.log(snap.val());
-                    GetKabKot(snap.val().provinsi, (data) => this.setState({kabupaten: data, kabupaten_loaded: true}))
-                    GetKecamatan(snap.val().kabupaten, (data) => this.setState({kecamatan: data, kecamatan_loaded: true}))
-                    GetKelurahan(snap.val().kecamatan, (data) => this.setState({kelurahan: data, kelurahan_loaded: true}))
-                    this.setState({
-                        [name]: value,
-                        data_loaded: true,
-                        nik_checking: false,
-                        form_nama_pelapor: snap
-                            .val()
-                            .nama,
-                        form_alamat: snap
-                            .val()
-                            .alamat,
-                        form_rt: snap
-                            .val()
-                            .rt,
-                        form_rw: snap
-                            .val()
-                            .rw,
-                        form_kelurahan: snap
-                            .val()
-                            .kelurahan,
-                        form_kecamatan: snap
-                            .val()
-                            .kecamatan,
-                        form_kabupaten: snap
-                            .val()
-                            .kabupaten,
-                        form_provinsi: snap
-                            .val()
-                            .provinsi,
-                        form_telp: snap
-                            .val()
-                            .no_telp
-                    })
-                    console.log(snap.val().kordinat_lokasi.lat);
+        console.log(value)
+        if (value !== "") {
+            this.setState({nik_checking: true})
+            rootRef
+                .child('pelapor')
+                .child(value)
+                .once('value', (snap) => {
+                    console.log(snap.exists());
+                    if (snap.exists()) {
+                        message.success('NIK sudah terdaftar, tekan next untuk melanjutkan.')
+                        console.log(snap.val());
+                        GetKabKot(snap.val().provinsi, (data) => this.setState({kabupaten: data, kabupaten_loaded: true}))
+                        GetKecamatan(snap.val().kabupaten, (data) => this.setState({kecamatan: data, kecamatan_loaded: true}))
+                        GetKelurahan(snap.val().kecamatan, (data) => this.setState({kelurahan: data, kelurahan_loaded: true}))
+                        this.setState({
+                            [name]: value,
+                            data_loaded: true,
+                            nik_checking: false,
+                            nik_registered:true,
+                            form_nama_pelapor: snap
+                                .val()
+                                .nama,
+                            form_alamat: snap
+                                .val()
+                                .alamat,
+                            form_rt: snap
+                                .val()
+                                .rt,
+                            form_rw: snap
+                                .val()
+                                .rw,
+                            form_kelurahan: snap
+                                .val()
+                                .kelurahan,
+                            form_kecamatan: snap
+                                .val()
+                                .kecamatan,
+                            form_kabupaten: snap
+                                .val()
+                                .kabupaten,
+                            form_provinsi: snap
+                                .val()
+                                .provinsi,
+                            form_telp: snap
+                                .val()
+                                .no_telp
+                        })
+                        console.log(snap.val().kordinat_lokasi.lat);
 
-                } else {
-                    message.warning('NIK blm terdaftar, dimohon untuk melengkapi data terlebih dahulu.')
-                    this.setState({[name]: value, data_loaded: false, nik_checking: false})
-                }
+                    } else {
+                        message.warning('NIK blm terdaftar, dimohon untuk melengkapi data terlebih dahulu.')
+                        this.setState({
+                            [name]: value,
+                            data_loaded: true,
+                            nik_checking: false,
+                            nik_registered:false,
+                            form_nama_pelapor: '',
+                            form_alamat: '',
+                            form_rt: '',
+                            form_rw: '',
+                            form_kelurahan: null,
+                            form_kecamatan: null,
+                            form_kabupaten: null,
+                            form_provinsi: null,
+                            form_telp: ''
+                        })
+                    }
 
-            })
+                })
+        } else {
+            message.warning('Mohon masukan NIK.')
+        }
 
     }
     render() {
         const {
+            redirect,
             unitUmur,
             nik_checking,
             page_active,
@@ -220,6 +281,7 @@ class Lapor extends Component {
             kecamatan_loaded,
             kelurahan,
             kelurahan_loaded,
+            form_nik,
             form_nama_pelapor,
             form_alamat,
             form_rt,
@@ -230,9 +292,13 @@ class Lapor extends Component {
             form_kabupaten,
             form_kecamatan,
             form_kelurahan,
-            form_lokasi_pelapor,
+            form_keluhan,
+            form_nama_warga_sakit,
             data_loaded
         } = this.state;
+        if ( redirect ) {
+			return <Redirect push to='/'/>
+		}
         const rt = ['001', '002', '003', '004'];
         const rw = ['01', '02', '03', '04'];
         const gejala = [
@@ -432,17 +498,31 @@ class Lapor extends Component {
                     }}>
                         <Form layout="vertical">
 
-                            {
-                                PageSession[page_active]
-                            }
+                            {PageSession[page_active]
+}
                             <Divider dashed/>
                             <Form.Item >
                                 <Row gutter={16}>
                                     <Col span={6}>
-                        <Button block  type="dashed" size="large" onClick={() => page_active>0?this.prevPage():window.history.back()}>{(page_active > 0?"Kembali":"Batal")}</Button>
+                                        <Button
+                                            block
+                                            type="dashed"
+                                            size="large"
+                                            onClick={() => page_active > 0
+                                            ? this.prevPage()
+                                            : window.history.back()}>{(page_active > 0
+                                                ? "Kembali"
+                                                : "Batal")}</Button>
                                     </Col>
                                     <Col span={18}>
-                                        <Button block type="primary" size="large" onClick={this.sendData}>{(page_active > 0?"Kirim":"Selanjutnya")}</Button>
+                                        <Button
+                                            block
+                                            type="primary"
+                                            size="large"
+                                            onClick={this.sendData}
+                                            disabled={page_active > 0?form_nama_warga_sakit===''||form_umur===null||form_keluhan==='':form_nik === '' || form_nama_pelapor === '' || form_telp === '' || form_alamat === '' || form_rt === '' || form_rw === '' || form_kelurahan === null || form_kecamatan === null || form_kabupaten === null || form_provinsi === null}>{(page_active > 0
+                                                ? "Kirim"
+                                                : "Selanjutnya")}</Button>
                                     </Col>
                                 </Row>
                             </Form.Item>
