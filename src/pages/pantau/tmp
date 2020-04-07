@@ -1,0 +1,11 @@
+ // const provinsi = async() => {
+                    //     return await getDataItem('provinsi', data.val().provinsi)
+                    // }
+                    // let provinsi = getDataItem('provinsi', data.val().provinsi).then(res=>{return
+                    // res})
+                    // let kabupaten = getDataItem('kabupaten_kota', data.val().kabupaten)
+                    // let kecamatan = getDataItem('kecamatan', data.val().kecamatan)
+                    // let kelurahan = getDataItem('desa_kelurahan', data.val().kelurahan)
+                    // getDataItem('provinsi', data.val().provinsi).then(res => console.log(res))
+                    // console.log(provinsi)
+                    // console.log(data.val())

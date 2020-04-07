@@ -12,7 +12,8 @@ import {
     Select,
     Collapse,
     message,
-    InputNumber
+    InputNumber,
+    Radio
 } from 'antd';
 import {Redirect} from 'react-router-dom'
 import {ContainerLapor, StyleLogo} from "../style";
@@ -22,12 +23,12 @@ import {get_gps_location} from "../../lib/gps"
 import {rootRef} from '../../firebaseRef/firebaseRef'
 class Lapor extends Component {
     state = {
-        redirect:false,
+        redirect: false,
         unitUmur: 'thn',
         page_active: 0,
         nik_checking: false,
         data_loaded: false,
-        nik_registered:false,
+        nik_registered: false,
         provinsi: [],
         provinsi_loaded: false,
         kabupaten: [],
@@ -91,7 +92,7 @@ class Lapor extends Component {
     }
     sendData = () => {
         const {nik_registered, page_active} = this.state
-        if (page_active > 0) {  
+        if (page_active > 0) {
             const {
                 form_nik,
                 form_rt,
@@ -102,6 +103,7 @@ class Lapor extends Component {
                 form_provinsi,
                 form_keluhan,
                 form_umur,
+                unitUmur,
                 form_nama_warga_sakit
             } = this.state
             rootRef
@@ -116,16 +118,14 @@ class Lapor extends Component {
                     kabupaten: form_kabupaten,
                     provinsi: form_provinsi,
                     keluhan: form_keluhan,
-                    umur: form_umur
-                }, (error)=>{
-                    if(error){
-
-                    } else {
+                    umur: form_umur +" "+ unitUmur
+                }, (error) => {
+                    if (error) {} else {
                         message.success('Laporan terkirim.')
-                        this.setState({redirect:true})
+                        this.setState({redirect: true})
                     }
                 })
-                
+
         } else {
             if (nik_registered) {
                 console.log('nothig to save');
@@ -211,7 +211,7 @@ class Lapor extends Component {
                             [name]: value,
                             data_loaded: true,
                             nik_checking: false,
-                            nik_registered:true,
+                            nik_registered: true,
                             form_nama_pelapor: snap
                                 .val()
                                 .nama,
@@ -248,7 +248,7 @@ class Lapor extends Component {
                             [name]: value,
                             data_loaded: true,
                             nik_checking: false,
-                            nik_registered:false,
+                            nik_registered: false,
                             form_nama_pelapor: '',
                             form_alamat: '',
                             form_rt: '',
@@ -296,9 +296,9 @@ class Lapor extends Component {
             form_nama_warga_sakit,
             data_loaded
         } = this.state;
-        if ( redirect ) {
-			return <Redirect push to='/'/>
-		}
+        if (redirect) {
+            return <Redirect push to='/'/>
+        }
         const rt = ['001', '002', '003', '004'];
         const rw = ['01', '02', '03', '04'];
         const gejala = [
@@ -314,6 +314,11 @@ class Lapor extends Component {
             'sesak nafas',
             'diare'
         ];
+        const radioStyle = {
+            display: 'block',
+            height: '30px',
+            lineHeight: '30px',
+          };
         const PageSession = [(
                 <div>
                     <Card title="Data pelapor">
@@ -479,6 +484,18 @@ class Lapor extends Component {
                                     return <Select.Option key={data}>{data}</Select.Option>
                                 })}</Select>
                         </Form.Item>
+                        <Form.Item name="radio-group" label="Apakan pernah kontak fisik dengan penderita covid-19?">
+                            <Radio.Group>
+                                <Radio style={radioStyle} value="ya">ya</Radio>
+                                <Radio style={radioStyle} value="tidak">tidak</Radio>
+                            </Radio.Group>
+                        </Form.Item>
+                        <Form.Item name="radio-group" label="Apakan pernah bepergian didaerah pandemi dalam 14 hari terakhir?">
+                            <Radio.Group>
+                                <Radio style={radioStyle} value="ya">ya</Radio>
+                                <Radio style={radioStyle} value="tidak">tidak</Radio>
+                            </Radio.Group>
+                        </Form.Item>
                     </Card>
                 </div>
             )]
@@ -520,7 +537,9 @@ class Lapor extends Component {
                                             type="primary"
                                             size="large"
                                             onClick={this.sendData}
-                                            disabled={page_active > 0?form_nama_warga_sakit===''||form_umur===null||form_keluhan==='':form_nik === '' || form_nama_pelapor === '' || form_telp === '' || form_alamat === '' || form_rt === '' || form_rw === '' || form_kelurahan === null || form_kecamatan === null || form_kabupaten === null || form_provinsi === null}>{(page_active > 0
+                                            disabled={page_active > 0
+                                            ? form_nama_warga_sakit === '' || form_umur === null || form_keluhan === ''
+                                            : form_nik === '' || form_nama_pelapor === '' || form_telp === '' || form_alamat === '' || form_rt === '' || form_rw === '' || form_kelurahan === null || form_kecamatan === null || form_kabupaten === null || form_provinsi === null}>{(page_active > 0
                                                 ? "Kirim"
                                                 : "Selanjutnya")}</Button>
                                     </Col>
