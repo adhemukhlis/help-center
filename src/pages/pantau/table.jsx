@@ -1,15 +1,11 @@
 import React, {Component} from 'react'
 import {Table} from 'antd';
-import { getProvinsiName, getKabupatenKotaName, getKecamatanName, getKelurahanName } from '../../lib/regional';
-
 class TablePantau extends Component {
-    state={
-        res:[]
+    state = {
+        res: []
     }
-  
-
     render() {
-        const { data } = this.props
+        const {data} = this.props
         const columns = [
             {
                 title: 'Nama',
@@ -64,31 +60,7 @@ class TablePantau extends Component {
                 width: 150
             }
         ];
-        const data_table = [{
-			key: 1,
-			nama: 'aaaaaa',
-			umur: 32,
-			keluhan: 'aa, dd, gg',
-			prov:'a',
-			kab:'a',
-			kec:'a',
-			des:'a',
-			rw:'a',
-			rt:'a',
-			pelapor:'a',
-		  }, {
-			key: 2,
-			nama: 'aaaaaa',
-			umur: 32,
-			keluhan: 'aa, dd, gg',
-			prov:'a',
-			kab:'a',
-			kec:'a',
-			des:'a',
-			rw:'a',
-			rt:'a',
-			pelapor:'a',
-		  }]
+
         return (<Table
             columns={columns}
             dataSource={data}

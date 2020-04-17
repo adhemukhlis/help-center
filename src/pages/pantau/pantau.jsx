@@ -1,8 +1,8 @@
 import React, {Component} from 'react';
 import {Doughnut} from 'react-chartjs-2';
 import {PieChartOutlined, DatabaseOutlined} from '@ant-design/icons';
-import {getDataItem} from '../../api-handler/api-handler'
-import {rootRef} from '../../firebaseRef/firebaseRef'
+import {connectToState, getState} from '../../global-state/global-state'
+import {fetchTerlapor} from '../../global-state/controller'
 import {
     Form,
     Card,
@@ -12,7 +12,8 @@ import {
     Row,
     Col,
     Select,
-    Tabs
+    Tabs,
+    Spin
 } from 'antd';
 import TablePantau from './table'
 import {ContainerPantau, StyleLogo} from "../style";
@@ -38,63 +39,23 @@ const data = {
         }
     }
 };
-
 class Pantau extends Component {
     state = {
-        isLoaded: false,
+        isLoaded: getState('_globalTerlaporLoaded'),
         pencarian_daerah: '',
         filter_rt: '',
         filter_rw: '',
         filter_kecamatan: '',
         filter_kelurahan: '',
-        res: []
+        res: getState('_globalTerlapor')
     };
-    getWilayah = async(provinsi, kabupaten, kecamatan, kelurahan) => {
-        const provinsi_tmp = await getDataItem('provinsi', provinsi)
-        const kabupaten_tmp = await getDataItem('kabupaten_kota', kabupaten)
-        const kecamatan_tmp = await getDataItem('kecamatan', kecamatan)
-        const kelurahan_tmp = await getDataItem('desa_kelurahan', kelurahan)
-        return {provinsi: provinsi_tmp, kabupaten: kabupaten_tmp, kecamatan: kecamatan_tmp, kelurahan: kelurahan_tmp}
-    }
-
-    getData = async(snap) => {
-
-        const tmp = await snap.map((lala, i) => {
-            return this
-                .getWilayah(lala.provinsi, lala.kabupaten, lala.kecamatan, lala.kelurahan)
-                .then((xx) => {
-                    return {
-                        key: i,
-                        nama: lala.nama,
-                        umur: lala.umur,
-                        keluhan: lala.keluhan,
-                        prov: xx.provinsi,
-                        kab: xx.kabupaten,
-                        kec: xx.kecamatan,
-                        des: xx.kelurahan,
-                        rw: lala.rw,
-                        rt: lala.rt,
-                        pelapor: lala.nik_pelapor
-                    }
-                })
-
-        })
-        return Promise.all(tmp)
-    }
     componentDidMount() {
-        rootRef
-            .child('terlapor')
-            .on('value', (snap) => {
-                // const a = Object.values(snap.val()).map(e => {return e});
-                // console.log(a)
-                // let arr = []
-                // snap.forEach((data) => {
-                //     arr.push(data.val())
-                // })
-                this
-                    .getData(Object.values(snap.val()).map(e => {return e}))
-                    .then(x => this.setState({res:x, isLoaded:true}))
-            })
+
+        fetchTerlapor()
+        connectToState([
+            '_globalTerlapor', '_globalTerlaporLoaded'
+        ], state => this.setState({res: state._globalTerlapor, isLoaded: state._globalTerlaporLoaded}))
+
     }
     onChange = (name, value) => {
         this.setState({[name]: value})
@@ -113,121 +74,132 @@ class Pantau extends Component {
         ];
         const kecamatan = ['Purwokerto Selatan'];
 
-        return (isLoaded && res != []
-            ? <div>
-                    <PageHeader
-                        onBack={() => window.history.back()}
-                        title="Pantau"
-                        subTitle="pantau data wilayah"/>
-                    <div style={ContainerPantau}>
-                        <img alt="example" style={StyleLogo} src={Logo}/>
-                        <div
+        return (
+            <div>
+                <PageHeader
+                    onBack={() => window.history.back()}
+                    title="Pantau"
+                    subTitle="pantau data wilayah"/>
+                <div style={ContainerPantau}>
+                    <img alt="example" style={StyleLogo} src={Logo}/>
+                    <div
+                        style={{
+                        width: '100%',
+                        display: 'flex',
+                        flexDirection: 'column'
+                    }}>
+                        <Form layout="vertical">
+                            <Card>
+                                <Form.Item label="Cari">
+                                    <Input.Search
+                                        placeholder="cari daerah"
+                                        onSearch={(value) => this.onChange("pencarian_daerah", value)}
+                                        enterButton/>
+                                </Form.Item>
+                                <Form.Item label="Filter berdasarkan">
+                                    <Row gutter={16}>
+                                        <Col span={12}>
+                                            <Form.Item >
+                                                <Select
+                                                    size="large"
+                                                    placeholder="RT"
+                                                    onChange={(value) => this.onChange("filter_rt", value)}>
+                                                    <Select.OptGroup label="RT">{rt.map((data) => {
+                                                            return <Select.Option key={data} value={data}>{data}</Select.Option>
+                                                        })}</Select.OptGroup>
+                                                </Select>
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={12}>
+                                            <Form.Item >
+                                                <Select
+                                                    size="large"
+                                                    placeholder="RW"
+                                                    onChange={(value) => this.onChange("filter_rw", value)}>
+                                                    <Select.OptGroup label="RW">{rw.map((data) => {
+                                                            return <Select.Option key={data} value={data}>{data}</Select.Option>
+                                                        })}</Select.OptGroup>
+                                                </Select>
+                                            </Form.Item>
+                                        </Col>
+                                    </Row>
+                                    <Form.Item >
+                                        <Select
+                                            size="large"
+                                            placeholder="Kelurahan"
+                                            onChange={(value) => this.onChange("filter_kelurahan", value)}>
+                                            <Select.OptGroup label="Kelurahan">{kelurahan.map((data) => {
+                                                    return <Select.Option key={data} value={data}>{data}</Select.Option>
+                                                })}</Select.OptGroup>
+                                        </Select>
+                                    </Form.Item>
+                                    <Form.Item >
+                                        <Select
+                                            size="large"
+                                            placeholder="Kecamatan"
+                                            onChange={(value) => this.onChange("filter_kecamatan", value)}>
+                                            <Select.OptGroup label="Kecamatan">{kecamatan.map((data) => {
+                                                    return <Select.Option key={data} value={data}>{data}</Select.Option>
+                                                })}</Select.OptGroup>
+                                        </Select>
+                                    </Form.Item>
+                                </Form.Item>
+                            </Card>
+                            <Divider dashed/>
+                        </Form>
+                        <Tabs
+                            defaultActiveKey="2"
                             style={{
                             width: '100%',
-                            display: 'flex',
-                            flexDirection: 'column'
-                        }}>
-                            <Form layout="vertical">
-                                <Card>
-                                    <Form.Item label="Cari">
-                                        <Input.Search
-                                            placeholder="cari daerah"
-                                            onSearch={(value) => this.onChange("pencarian_daerah", value)}
-                                            enterButton/>
-                                    </Form.Item>
-                                    <Form.Item label="Filter berdasarkan">
-                                        <Row gutter={16}>
-                                            <Col span={12}>
-                                                <Form.Item >
-                                                    <Select
-                                                        size="large"
-                                                        placeholder="RT"
-                                                        onChange={(value) => this.onChange("filter_rt", value)}>
-                                                        <Select.OptGroup label="RT">{rt.map((data) => {
-                                                                return <Select.Option key={data} value={data}>{data}</Select.Option>
-                                                            })}</Select.OptGroup>
-                                                    </Select>
-                                                </Form.Item>
-                                            </Col>
-                                            <Col span={12}>
-                                                <Form.Item >
-                                                    <Select
-                                                        size="large"
-                                                        placeholder="RW"
-                                                        onChange={(value) => this.onChange("filter_rw", value)}>
-                                                        <Select.OptGroup label="RW">{rw.map((data) => {
-                                                                return <Select.Option key={data} value={data}>{data}</Select.Option>
-                                                            })}</Select.OptGroup>
-                                                    </Select>
-                                                </Form.Item>
-                                            </Col>
-                                        </Row>
-                                        <Form.Item >
-                                            <Select
-                                                size="large"
-                                                placeholder="Kelurahan"
-                                                onChange={(value) => this.onChange("filter_kelurahan", value)}>
-                                                <Select.OptGroup label="Kelurahan">{kelurahan.map((data) => {
-                                                        return <Select.Option key={data} value={data}>{data}</Select.Option>
-                                                    })}</Select.OptGroup>
-                                            </Select>
-                                        </Form.Item>
-                                        <Form.Item >
-                                            <Select
-                                                size="large"
-                                                placeholder="Kecamatan"
-                                                onChange={(value) => this.onChange("filter_kecamatan", value)}>
-                                                <Select.OptGroup label="Kecamatan">{kecamatan.map((data) => {
-                                                        return <Select.Option key={data} value={data}>{data}</Select.Option>
-                                                    })}</Select.OptGroup>
-                                            </Select>
-                                        </Form.Item>
-                                    </Form.Item>
-                                </Card>
-                                <Divider dashed/>
-                            </Form>
-                            <Tabs
-                                defaultActiveKey="2"
-                                style={{
-                                width: '100%',
-                                height: '80vh'
-                            }}
-                                size='large'>
-                                <Tabs.TabPane
-                                    tab={(
-                                    <span>
-                                        <PieChartOutlined/>
-                                        Grafik
-                                    </span>
-                                )}
-                                    key="1">
-                                    <div >
-                                        <Doughnut
-                                            data={data}
-                                            options={{
-                                            legend: {
-                                                position: 'right'
-                                            }
-                                        }}/>
-                                    </div>
-                                </Tabs.TabPane>
-                                <Tabs.TabPane
-                                    tab={(
-                                    <span>
-                                        <DatabaseOutlined/>
-                                        Tabel
-                                    </span>
-                                )}
-                                    key="2">
-                                    <TablePantau data={res}/>
+                            height: '80vh'
+                        }}
+                            size='large'>
+                            <Tabs.TabPane
+                                tab={(
+                                <span>
+                                    <PieChartOutlined/>
+                                    Grafik
+                                </span>
+                            )}
+                                key="1">
+                                <div >
+                                    <Doughnut
+                                        data={data}
+                                        options={{
+                                        legend: {
+                                            position: 'right'
+                                        }
+                                    }}/>
+                                </div>
+                            </Tabs.TabPane>
+                            <Tabs.TabPane
+                                tab={(
+                                <span>
+                                    <DatabaseOutlined/>
+                                    Tabel
+                                </span>
+                            )}
+                                key="2">
+                                <Spin
+                                    tip="Loading..."
+                                    spinning={isLoaded && res !== []
+                                    ? false
+                                    : true}
+                                    delay={200}>
+                                    <TablePantau
+                                        loading={false}
+                                        data={isLoaded && res !== []
+                                        ? res
+                                        : []}/>
+                                </Spin>
 
-                                </Tabs.TabPane>
-                            </Tabs>
+                            </Tabs.TabPane>
+                        </Tabs>
 
-                        </div>
                     </div>
                 </div>
-            : null)
+            </div>
+        )
     }
 }
 export default Pantau;

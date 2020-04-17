@@ -1,6 +1,5 @@
 const baseUrl = 'https://api-wilayah-indonesia-firebase.firebaseio.com/wilayah/';
-const query = 'https://indonesia-region.firebaseio.com/regional/kab-kot.json?orderBy=%22id%22&&' +
-        'startAt=%2211%22&&endAt=%2211\uf8ff%22'
+
 export const ArrAPI = (url, callback) => {
     fetch(baseUrl + url + '.json')
         .then(function (response) {
@@ -28,7 +27,5 @@ export const ArrAPI = (url, callback) => {
 export const getDataItem = async(region, id) => {
 	const response = await fetch(baseUrl + region + '/' + id + '.json')
 	const json = await response.json()
-	// console.log(json.name)
-	
 	return json.name
 }
